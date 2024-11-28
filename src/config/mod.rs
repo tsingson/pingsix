@@ -543,7 +543,9 @@ listeners:
 
 routers:
   - id: 1
-    uri: /
+    uris: 
+      - /api*
+      - /static
     upstream_id: 1
 
 upstreams:
