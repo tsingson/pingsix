@@ -57,14 +57,16 @@ impl ProxyPlugin for PluginLogger {
 
         // Extract node from context variables
         let upstream = ctx.vars.get("upstream").map_or("", |s| s.as_str());
+        let remote_addr = ctx.vars.get("remote_addr").map_or("", |s| s.as_str());
+        let remote_port = ctx.vars.get("remote_port").map_or("", |s| s.as_str());
 
         let latency = ctx.request_start.elapsed().as_millis() as f64 / 1000.0;
         let ingress = session.body_bytes_read() as u64;
         let egress = session.body_bytes_sent() as u64;
 
         info!(
-            "code:{} route:{} uri:{} host:{} service:{} upstream:{} latency:{} ingress:{} egress:{}",
-            code, route, uri, host, service, upstream, latency, ingress, egress
+            "code:{} route:{} uri:{} host:{} service:{} remote:{}:{} -> upstream:{} latency:{} ingress:{} egress:{}",
+            code, route, uri, host, service, remote_addr, remote_port, upstream, latency, ingress, egress
         );
     }
 }

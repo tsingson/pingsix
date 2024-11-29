@@ -32,6 +32,6 @@ upstreams:
     scheme: http
 
 global_rules:
-  - id: 1
+  - id: global
     plugins:
       logger: {}

@@ -14,6 +14,8 @@ use sentry::IntoDsn;
 use service::http::build_http_service;
 use std::env;
 use std::error::Error;
+use std::path::PathBuf;
+
 mod config;
 mod proxy;
 mod service;
@@ -23,12 +25,11 @@ fn run() -> Result<(), Box<dyn Error>> {
     // Initialize logging
     // env_logger::init();
 
-    let mut path_buf = env::current_exe().unwrap();
+    let mut path_buf: PathBuf = env::current_exe().unwrap();
     path_buf.pop();
-    path_buf.push("logs");
-    path_buf.push("async");
-    path_buf.set_extension("logs");
-    println!("--- {:?}", path_buf);
+    path_buf.push("log");
+
+    // println!("--- {:?}", path_buf);
 
     init_logger(path_buf)?;
 

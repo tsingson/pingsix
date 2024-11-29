@@ -11,43 +11,38 @@ pub fn default_logger() {
     default_logger.set_level_filter(LevelFilter::All);
 }
 
-#[cfg(debug_assertions)]
 pub fn init_logger(path_buf: PathBuf) -> Result<(), Box<dyn Error>> {
-    let file_sink = Arc::new(
+    let mut p_log: PathBuf = path_buf.clone();
+
+    p_log.set_extension("proxy");
+    p_log.set_extension("log");
+    let mut p_err: PathBuf = path_buf.clone();
+    p_err.push("error");
+    p_err.set_extension("log");
+    let log_file_sink = Arc::new(
         RotatingFileSink::builder()
-            .base_path(path_buf)
+            .base_path(p_log)
             .rotation_policy(RotationPolicy::Daily { hour: 0, minute: 0 })
+            .level_filter(LevelFilter::All)
+            .build()?,
+    );
+    let err_log_file_sink = Arc::new(
+        RotatingFileSink::builder()
+            .base_path(p_err)
+            .rotation_policy(RotationPolicy::Daily { hour: 0, minute: 0 })
+            .level_filter(LevelFilter::Equal(Level::Error))
             .build()?,
     );
     // AsyncPoolSink is a combined sink which wraps other sinks
 
     let new_logger = spdlog::default_logger().fork_with(|new| {
-        let _async_pool_sink = Arc::new(AsyncPoolSink::builder().sink(file_sink).build()?);
-        new.sinks_mut().push(_async_pool_sink);
+        let _async_log_sink = Arc::new(AsyncPoolSink::builder().sink(log_file_sink).build()?);
+        let _async_err_sink = Arc::new(AsyncPoolSink::builder().sink(err_log_file_sink).build()?);
+        new.sinks_mut().push(_async_log_sink);
+        new.sinks_mut().push(_async_err_sink);
         Ok(())
     })?;
 
     spdlog::set_default_logger(new_logger);
-    Ok(())
-}
-
-#[cfg(not(debug_assertions))]
-pub fn init_logger(path_buf: PathBuf) -> Result<(), Box<dyn Error>> {
-    let file_sink = Arc::new(
-        RotatingFileSink::builder()
-            .base_path(path_buf)
-            .rotation_policy(RotationPolicy::Daily { hour: 0, minute: 0 })
-            .build()?,
-    );
-    // AsyncPoolSink is a combined sink which wraps other sinks
-    let async_pool_sink = Arc::new(AsyncPoolSink::builder().sink(file_sink).build()?);
-
-    let async_logger = Arc::new(
-        Logger::builder()
-            .sink(async_pool_sink)
-            .flush_level_filter(LevelFilter::All)
-            .build()?,
-    );
-    spdlog::set_default_logger(async_logger);
     Ok(())
 }
