@@ -1,24 +1,52 @@
 #![allow(clippy::upper_case_acronyms)]
 
+use config::{Config, Tls};
 use pingora::services::listening::Service;
 use pingora_core::apps::HttpServerOptions;
 use pingora_core::listeners::tls::TlsSettings;
 use pingora_core::server::configuration::Opt;
 use pingora_core::server::Server;
 use pingora_proxy::http_proxy_service_with_name;
-use sentry::IntoDsn;
-
-use config::{Config, Tls};
 use proxy::{service::load_services, upstream::load_upstreams};
+use sentry::IntoDsn;
 use service::http::build_http_service;
-
+use spdlog::sink::{AsyncPoolSink, RotatingFileSink, RotationPolicy};
+use spdlog::{error, info};
+use std::env;
+use std::error::Error;
+use std::sync::Arc;
 mod config;
 mod proxy;
 mod service;
 
-fn main() {
+fn run() -> Result<(), Box<dyn Error>> {
     // Initialize logging
-    env_logger::init();
+    // env_logger::init();
+
+    let mut path_buf = env::current_exe().unwrap();
+    path_buf.pop();
+    path_buf.push("log");
+    path_buf.push("async");
+    path_buf.set_extension("log");
+    println!("--- {:?}", path_buf);
+
+    let file_sink = Arc::new(
+        RotatingFileSink::builder()
+            .base_path(path_buf)
+            .rotation_policy(RotationPolicy::Daily { hour: 0, minute: 0 })
+            .build()?,
+    );
+    // AsyncPoolSink is a combined sink which wraps other sinks
+
+    let new_logger = spdlog::default_logger().fork_with(|new| {
+        let _async_pool_sink = Arc::new(AsyncPoolSink::builder().sink(file_sink).build()?);
+        new.sinks_mut().push(_async_pool_sink);
+        Ok(())
+    })?;
+
+    spdlog::set_default_logger(new_logger);
+
+    info!("this log will be written to the file `rotating_daily.log`, and the file will be rotated daily at 00:00");
 
     // Read command-line arguments and load configuration
     let opt = Opt::parse_args();
@@ -87,4 +115,10 @@ fn main() {
 
     log::info!("Starting Server...");
     pingsix_server.run_forever();
+}
+
+fn main() {
+    if let Err(err) = run() {
+        error!("{}", err.to_string());
+    }
 }

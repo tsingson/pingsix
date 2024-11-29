@@ -28,3 +28,4 @@ serde = { version = "1.0.197", features = ["derive"] }
 serde_yaml = "0.9.34"
 tokio = "1.41.1"
 validator = { version = "0.18.1", features = ["derive"] }
+spdlog-rs = { version = "0.4.0", features = ["log", "multi-thread"] }

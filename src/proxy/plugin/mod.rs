@@ -18,6 +18,7 @@ pub mod echo;
 pub mod grpc_web;
 pub mod gzip;
 pub mod limit_count;
+pub mod logger;
 pub mod prometheus;
 
 /// Type alias for plugin initialization functions
@@ -41,6 +42,7 @@ static PLUGIN_BUILDER_REGISTRY: Lazy<HashMap<&'static str, PluginCreateFn>> = La
             prometheus::PLUGIN_NAME,
             Arc::new(prometheus::create_prometheus_plugin),
         ),
+        (logger::PLUGIN_NAME, Arc::new(logger::create_logger_plugin)),
     ];
     arr.into_iter().collect()
 });

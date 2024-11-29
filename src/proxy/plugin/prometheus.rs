@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use crate::proxy::{get_request_host, ProxyContext};
 use async_trait::async_trait;
 use once_cell::sync::Lazy;
 use pingora_core::{Error, Result};
@@ -9,8 +10,7 @@ use prometheus::{
     HistogramVec, IntCounterVec, IntGauge,
 };
 use serde_yaml::Value as YamlValue;
-
-use crate::proxy::{get_request_host, ProxyContext};
+use spdlog::info;
 
 use super::ProxyPlugin;
 
@@ -73,6 +73,7 @@ static BANDWIDTH: Lazy<IntCounterVec> = Lazy::new(|| {
 pub const PLUGIN_NAME: &str = "prometheus";
 
 pub fn create_prometheus_plugin(_cfg: YamlValue) -> Result<Arc<dyn ProxyPlugin>> {
+    info!("registered plugin {}", PLUGIN_NAME);
     Ok(Arc::new(PluginPrometheus {}))
 }
 
