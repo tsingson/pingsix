@@ -452,9 +452,10 @@ pub struct GlobalRule {
 #[cfg(test)]
 mod tests {
     use crate::config::Config;
+    use crate::logs::log::default_logger;
 
     fn init_log() {
-        let _ = env_logger::builder().is_test(true).try_init();
+        default_logger();
     }
 
     #[test]

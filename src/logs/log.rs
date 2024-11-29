@@ -1,10 +1,15 @@
+use spdlog::sink::{AsyncPoolSink, RotatingFileSink, RotationPolicy};
 use std::error::Error;
 use std::path::PathBuf;
 use std::sync::Arc;
 
-#[cfg(not(debug_assertions))]
 use spdlog::prelude::*;
-use spdlog::sink::{AsyncPoolSink, RotatingFileSink, RotationPolicy};
+
+#[allow(dead_code)]
+pub fn default_logger() {
+    let default_logger = spdlog::default_logger();
+    default_logger.set_level_filter(LevelFilter::All);
+}
 
 #[cfg(debug_assertions)]
 pub fn init_logger(path_buf: PathBuf) -> Result<(), Box<dyn Error>> {
