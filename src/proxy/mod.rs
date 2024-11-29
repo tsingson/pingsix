@@ -10,7 +10,6 @@ use plugin::ProxyPluginExecutor;
 use router::ProxyRouter;
 
 use crate::config;
-
 pub mod discovery;
 pub mod plugin;
 pub mod router;

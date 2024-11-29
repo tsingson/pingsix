@@ -1,6 +1,15 @@
 use std::sync::Arc;
 use std::time::Duration;
 
+use crate::config::Config;
+use crate::logs::info;
+use crate::proxy::plugin::{
+    build_global_plugin_executor, build_plugin, build_plugin_executor, ProxyPlugin,
+    ProxyPluginExecutor,
+};
+use crate::proxy::router::{MatchEntry, ProxyRouter};
+use crate::proxy::upstream::ProxyUpstream;
+use crate::proxy::ProxyContext;
 use async_trait::async_trait;
 use bytes::Bytes;
 use http::StatusCode;
@@ -10,15 +19,6 @@ use pingora_core::upstreams::peer::HttpPeer;
 use pingora_error::{Error, Result};
 use pingora_http::{RequestHeader, ResponseHeader};
 use pingora_proxy::{ProxyHttp, Session};
-
-use crate::config::Config;
-use crate::proxy::plugin::{
-    build_global_plugin_executor, build_plugin, build_plugin_executor, ProxyPlugin,
-    ProxyPluginExecutor,
-};
-use crate::proxy::router::{MatchEntry, ProxyRouter};
-use crate::proxy::upstream::ProxyUpstream;
-use crate::proxy::ProxyContext;
 
 /// Proxy service.
 ///
@@ -204,7 +204,7 @@ impl ProxyHttp for HttpService {
 pub fn build_http_service(config: &Config) -> Result<HttpService> {
     let mut http_service = HttpService::default();
     for router in config.routers.iter() {
-        log::info!("Configuring Router: {}", router.id);
+        info!("Configuring Router: {}", router.id);
         let mut proxy_router = ProxyRouter::from(router.clone());
 
         if let Some(upstream) = router.upstream.clone() {

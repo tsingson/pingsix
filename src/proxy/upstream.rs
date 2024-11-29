@@ -5,7 +5,6 @@ use std::{
 };
 
 use http::Uri;
-use log::info;
 use once_cell::sync::Lazy;
 use pingora::services::background::background_service;
 use pingora_core::services::Service;
@@ -21,6 +20,8 @@ use pingora_load_balancing::{
 };
 use pingora_proxy::Session;
 use pingora_runtime::Runtime;
+
+use crate::logs::{debug, info, warn};
 use tokio::sync::watch;
 
 use crate::config;
@@ -89,7 +90,7 @@ impl ProxyUpstream {
     /// Selects a backend server for a given session.
     pub fn select_backend<'a>(&'a self, session: &'a mut Session) -> Option<Backend> {
         let key = request_selector_key(session, &self.inner.hash_on, self.inner.key.as_str());
-        log::debug!("proxy lb key: {}", &key);
+        debug!("proxy lb key: {}", &key);
 
         let mut backend = match &self.lb {
             SelectionLB::RoundRobin(lb) => lb.upstreams.select(key.as_bytes(), 256),
@@ -281,14 +282,14 @@ impl From<config::HealthCheck> for Box<HttpHealthCheck> {
         // Set certificate verification if TLS is enabled
         health_check.peer_template.options.verify_cert = value.active.https_verify_certificate;
 
-        // Build URI for HTTP health check path, log failure if any
+        // Build URI for HTTP health check path, logs failure if any
         if let Ok(uri) = Uri::builder()
             .path_and_query(&value.active.http_path)
             .build()
         {
             health_check.req.set_uri(uri);
         } else {
-            log::warn!(
+            warn!(
                 "Invalid URI path provided for health check: {}",
                 value.active.http_path
             );

@@ -1,6 +1,8 @@
 #![allow(clippy::upper_case_acronyms)]
 
 use config::{Config, Tls};
+use logs::log::init_logger;
+use logs::{error, info};
 use pingora::services::listening::Service;
 use pingora_core::apps::HttpServerOptions;
 use pingora_core::listeners::tls::TlsSettings;
@@ -10,50 +12,36 @@ use pingora_proxy::http_proxy_service_with_name;
 use proxy::{service::load_services, upstream::load_upstreams};
 use sentry::IntoDsn;
 use service::http::build_http_service;
-use spdlog::sink::{AsyncPoolSink, RotatingFileSink, RotationPolicy};
-use spdlog::{error, info};
 use std::env;
 use std::error::Error;
-use std::sync::Arc;
 mod config;
 mod proxy;
 mod service;
 
+mod logs;
 fn run() -> Result<(), Box<dyn Error>> {
     // Initialize logging
     // env_logger::init();
 
     let mut path_buf = env::current_exe().unwrap();
     path_buf.pop();
-    path_buf.push("log");
+    path_buf.push("logs");
     path_buf.push("async");
-    path_buf.set_extension("log");
+    path_buf.set_extension("logs");
     println!("--- {:?}", path_buf);
 
-    let file_sink = Arc::new(
-        RotatingFileSink::builder()
-            .base_path(path_buf)
-            .rotation_policy(RotationPolicy::Daily { hour: 0, minute: 0 })
-            .build()?,
+    init_logger(path_buf)?;
+
+    info!(
+        "this logs will be written to the file `rotating_daily.logs`, and the file will be rotated daily at 00:00"
     );
-    // AsyncPoolSink is a combined sink which wraps other sinks
-
-    let new_logger = spdlog::default_logger().fork_with(|new| {
-        let _async_pool_sink = Arc::new(AsyncPoolSink::builder().sink(file_sink).build()?);
-        new.sinks_mut().push(_async_pool_sink);
-        Ok(())
-    })?;
-
-    spdlog::set_default_logger(new_logger);
-
-    info!("this log will be written to the file `rotating_daily.log`, and the file will be rotated daily at 00:00");
 
     // Read command-line arguments and load configuration
     let opt = Opt::parse_args();
     let config = Config::load_yaml_with_opt_override(&opt).expect("Failed to load configuration");
 
     // Log loading stages and initialize necessary services
-    log::info!("Loading services, upstreams, and routers...");
+    info!("Loading services, upstreams, and routers...");
     load_services(&config).expect("Failed to load services");
     load_upstreams(&config).expect("Failed to load upstreams");
     let http_service = build_http_service(&config).expect("Failed to initialize proxy service");
@@ -64,7 +52,7 @@ fn run() -> Result<(), Box<dyn Error>> {
         http_proxy_service_with_name(&pingsix_server.configuration, http_service, "pingsix");
 
     // Add listeners (TLS or TCP) based on configuration
-    log::info!("Adding listeners...");
+    info!("Adding listeners...");
     for list_cfg in config.listeners.iter() {
         match &list_cfg.tls {
             Some(Tls {
@@ -92,7 +80,7 @@ fn run() -> Result<(), Box<dyn Error>> {
 
     // Add Sentry configuration if provided
     if let Some(sentry_cfg) = &config.sentry {
-        log::info!("Adding Sentry config...");
+        info!("Adding Sentry config...");
         pingsix_server.sentry = Some(sentry::ClientOptions {
             dsn: sentry_cfg.dsn.clone().into_dsn().unwrap(),
             ..Default::default()
@@ -101,19 +89,19 @@ fn run() -> Result<(), Box<dyn Error>> {
 
     // Add Prometheus service if provided
     if let Some(prometheus_cfg) = &config.prometheus {
-        log::info!("Adding Prometheus Service...");
+        info!("Adding Prometheus Service...");
         let mut prometheus_service_http = Service::prometheus_http_service();
         prometheus_service_http.add_tcp(&prometheus_cfg.address.to_string());
         pingsix_server.add_service(prometheus_service_http);
     }
 
     // Bootstrapping and server startup
-    log::info!("Bootstrapping...");
+    info!("Bootstrapping...");
     pingsix_server.bootstrap();
-    log::info!("Bootstrapped. Adding Services...");
+    info!("Bootstrapped. Adding Services...");
     pingsix_server.add_service(http_service);
 
-    log::info!("Starting Server...");
+    info!("Starting Server...");
     pingsix_server.run_forever();
 }
 

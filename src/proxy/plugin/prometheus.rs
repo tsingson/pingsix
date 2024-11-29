@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use crate::logs::info;
 use crate::proxy::{get_request_host, ProxyContext};
 use async_trait::async_trait;
 use once_cell::sync::Lazy;
@@ -10,7 +11,6 @@ use prometheus::{
     HistogramVec, IntCounterVec, IntGauge,
 };
 use serde_yaml::Value as YamlValue;
-use spdlog::info;
 
 use super::ProxyPlugin;
 

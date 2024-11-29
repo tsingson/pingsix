@@ -5,11 +5,10 @@ use async_trait::async_trait;
 use pingora_core::{Error, Result};
 use pingora_proxy::Session;
 
+use super::ProxyPlugin;
+use crate::logs::info;
 use crate::proxy::{get_request_host, ProxyContext};
 use serde_yaml::Value as YamlValue;
-use spdlog::info;
-
-use super::ProxyPlugin;
 pub const PLUGIN_NAME: &str = "logger";
 
 #[warn(dead_code)]

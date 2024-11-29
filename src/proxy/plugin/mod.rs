@@ -245,7 +245,7 @@ pub trait ProxyPlugin: Send + Sync {
     /// This filter is called when the entire response is sent to the downstream successfully or
     /// there is a fatal error that terminate the request.
     ///
-    /// An error log is already emitted if there is any error. This phase is used for collecting
+    /// An error logs is already emitted if there is any error. This phase is used for collecting
     /// metrics and sending access logs.
     async fn logging(&self, _session: &mut Session, _e: Option<&Error>, _ctx: &mut ProxyContext) {}
 }

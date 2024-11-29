@@ -2,12 +2,12 @@ use std::collections::BTreeMap;
 use std::sync::Arc;
 use std::time;
 
+use crate::config;
+use crate::logs::debug;
 use matchit::{InsertError, Router as MatchRouter};
 use pingora_core::upstreams::peer::HttpPeer;
 use pingora_error::{Error, Result};
 use pingora_proxy::Session;
-
-use crate::config;
 
 use super::{
     get_request_host,
@@ -181,11 +181,9 @@ impl MatchEntry {
         let uri = session.req_header().uri.path();
         let method = session.req_header().method.as_str();
 
-        log::debug!(
+        debug!(
             "match request: host={:?}, uri={:?}, method={:?}",
-            host,
-            uri,
-            method
+            host, uri, method
         );
 
         // Attempt to match using host_uris if a valid host is provided

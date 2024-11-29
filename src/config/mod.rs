@@ -2,7 +2,7 @@ use std::fs;
 use std::net::SocketAddr;
 use std::{collections::HashMap, fmt};
 
-use log::{debug, trace};
+use crate::logs::{debug, trace};
 use pingora::server::configuration::{Opt, ServerConf};
 use pingora_error::{Error, ErrorType::*, OrErr, Result};
 use regex::Regex;
@@ -451,7 +451,7 @@ pub struct GlobalRule {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use crate::config::Config;
 
     fn init_log() {
         let _ = env_logger::builder().is_test(true).try_init();

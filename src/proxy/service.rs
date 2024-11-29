@@ -3,10 +3,10 @@ use std::{
     sync::{Arc, RwLock},
 };
 
+use crate::config;
+use crate::logs::info;
 use once_cell::sync::Lazy;
 use pingora_error::Result;
-
-use crate::config;
 
 use super::{
     plugin::{build_plugin, ProxyPlugin},
@@ -24,7 +24,7 @@ pub fn load_services(config: &config::Config) -> Result<()> {
         .expect("Failed to acquire write lock on the service map");
 
     for service in config.services.iter() {
-        log::info!("Configuring Service: {}", service.id);
+        info!("Configuring Service: {}", service.id);
         let mut proxy_service = ProxyService::from(service.clone());
 
         if let Some(ref upstream) = service.upstream {
