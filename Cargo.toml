@@ -2,6 +2,7 @@
 name = "pingsix"
 version = "0.2.0"
 edition = "2021"
+authors = ["zhu327 <zhu327@gmail.com>"]
 
 [dependencies]
 async-trait = "0.1.83"
