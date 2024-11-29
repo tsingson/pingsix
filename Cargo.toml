@@ -1,7 +1,7 @@
 [package]
 name = "pingsix"
-version = "0.1.0"
-edition = "2021"
+version = "0.2.0"
+edition = "2024"
 
 [dependencies]
 async-trait = "0.1.83"
@@ -29,3 +29,11 @@ serde_yaml = "0.9.34"
 tokio = "1.41.1"
 validator = { version = "0.18.1", features = ["derive"] }
 spdlog-rs = { version = "0.4.0", features = ["log", "multi-thread"] }
+
+[profile.release]
+opt-level = "z"
+strip = true
+lto = true
+codegen-units = 1
+panic = "abort"
+split-debuginfo = "off"
