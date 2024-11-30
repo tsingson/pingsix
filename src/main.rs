@@ -33,9 +33,7 @@ fn run() -> Result<(), Box<dyn Error>> {
 
     init_logger(path_buf)?;
 
-    info!(
-        "this logs will be written to the file `rotating_daily.logs`, and the file will be rotated daily at 00:00"
-    );
+    info!("logger initialized successfully.",);
 
     // Read command-line arguments and load configuration
     let opt = Opt::parse_args();

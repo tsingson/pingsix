@@ -14,6 +14,13 @@ routers:
       - /api.{*p}
       - /files/
     upstream_id: grpc
+    plugins:
+      tiny_cache:
+       total_weight_limit: 100
+       estimated_size: 10
+       payload_limit: 1048576
+
+
   - id: photo
     uri: /storage/
     upstream_id: preview

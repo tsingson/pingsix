@@ -1,3 +1,7 @@
+// global logger plugin
+// TODO: send logger to log collector
+// TODO: customized log pattern / log format, maybe json
+
 use std::sync::Arc;
 
 use async_trait::async_trait;

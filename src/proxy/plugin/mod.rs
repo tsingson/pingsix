@@ -20,6 +20,7 @@ pub mod gzip;
 pub mod limit_count;
 pub mod logger;
 pub mod prometheus;
+pub mod tinycache;
 
 /// Type alias for plugin initialization functions
 pub type PluginCreateFn = Arc<dyn Fn(YamlValue) -> Result<Arc<dyn ProxyPlugin>> + Send + Sync>;
@@ -41,6 +42,10 @@ static PLUGIN_BUILDER_REGISTRY: Lazy<HashMap<&'static str, PluginCreateFn>> = La
         (
             prometheus::PLUGIN_NAME,
             Arc::new(prometheus::create_prometheus_plugin),
+        ),
+        (
+            tinycache::PLUGIN_NAME,
+            Arc::new(tinycache::create_tiny_cache_plugin),
         ),
         (logger::PLUGIN_NAME, Arc::new(logger::create_logger_plugin)),
     ];
