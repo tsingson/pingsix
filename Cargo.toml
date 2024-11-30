@@ -39,6 +39,11 @@ pingora-load-balancing = {  path = "../pingora/pingora-load-balancing"}
 pingora-proxy ={  path = "../pingora/pingora-proxy"}
 pingora-runtime = {  path = "../pingora/pingora-runtime"}
 pingora-cache ={  path = "../pingora/pingora-cache"}
+httpdate = "1.0.3"
+mime_guess = "2.0.5"
+percent-encoding = "2.3.1"
+tokio-test = "0.4.4"
+maud = { version = "0.26.0", features = ["http"] }
 #
 
 [profile.release]

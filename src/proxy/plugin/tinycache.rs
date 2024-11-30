@@ -11,10 +11,10 @@ use pingora_http::ResponseHeader;
 use pingora_proxy::Session;
 use std::sync::Arc;
 
+use crate::logs::info;
 use crate::proxy::ProxyContext;
 use serde::{Deserialize, Serialize};
 use serde_yaml::Value as YamlValue;
-use spdlog::info;
 use tinyufo::TinyUfo;
 
 use super::ProxyPlugin;
