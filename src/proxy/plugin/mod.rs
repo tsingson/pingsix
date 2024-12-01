@@ -15,6 +15,7 @@ use super::{router::ProxyRouter, service::service_fetch};
 
 pub mod brotli;
 pub mod echo;
+pub mod files;
 pub mod grpc_web;
 pub mod gzip;
 pub mod limit_count;
@@ -22,7 +23,6 @@ pub mod logger;
 pub mod prometheus;
 mod static_files;
 pub mod tinycache;
-pub mod files;
 
 /// Type alias for plugin initialization functions
 pub type PluginCreateFn = Arc<dyn Fn(YamlValue) -> Result<Arc<dyn ProxyPlugin>> + Send + Sync>;
