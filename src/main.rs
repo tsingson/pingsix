@@ -1,7 +1,7 @@
 #![allow(clippy::upper_case_acronyms)]
 
 use config::{Config, Tls};
-use logs::log::init_logger;
+use logs::init_logger;
 use logs::{error, info};
 use pingora::services::listening::Service;
 use pingora_core::apps::HttpServerOptions;
