@@ -2,6 +2,7 @@ use std::collections::{BTreeSet, HashMap};
 use std::net::{IpAddr, SocketAddr};
 use std::sync::Arc;
 
+use crate::slogs::{debug, warn};
 use async_trait::async_trait;
 use futures::future::join_all;
 use hickory_resolver::TokioAsyncResolver;
@@ -60,7 +61,7 @@ impl ServiceDiscovery for DnsDiscovery {
     /// Discovers backends by resolving DNS names to IP addresses.
     async fn discover(&self) -> Result<(BTreeSet<Backend>, HashMap<u64, bool>)> {
         let name = self.name.as_str();
-        log::debug!("Resolving DNS for domain: {}", name);
+        debug!("Resolving DNS for domain: {}", name);
 
         let backends: BTreeSet<Backend> = self
             .resolver
@@ -117,7 +118,7 @@ impl ServiceDiscovery for HybridDiscovery {
 
         let futures = self.discoveries.iter().map(|discovery| async move {
             discovery.discover().await.map_err(|e| {
-                log::warn!("Hydrid discovery failed: {}", e);
+                warn!("Hydrid discovery failed: {}", e);
                 e
             })
         });

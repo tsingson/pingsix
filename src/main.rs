@@ -2,7 +2,8 @@
 mod config;
 mod proxy;
 mod service;
-
+use crate::slogs::info;
+use config::{etcd::EtcdConfigSync, Config, Tls};
 use pingora::services::{background::background_service, listening::Service};
 use pingora_core::{
     apps::HttpServerOptions,
@@ -10,31 +11,39 @@ use pingora_core::{
     server::{configuration::Opt, Server},
 };
 use pingora_proxy::http_proxy_service_with_name;
-use sentry::IntoDsn;
-
-use config::{etcd::EtcdConfigSync, Config, Tls};
+use pingsix::slogs;
+use pingsix::slogs::init_logger;
 use proxy::{
     global_rule::load_global_rules, router::load_routers, service::load_services,
     sync::ProxySyncHandler, upstream::load_upstreams,
 };
+use sentry::IntoDsn;
+use std::env;
+use std::path::PathBuf;
 
 fn main() {
     // Initialize logging
-    env_logger::init();
+    let mut path_buf: PathBuf = env::current_exe().unwrap();
+    path_buf.pop();
+    path_buf.push("log");
+
+    // println!("--- {:?}", path_buf);
+
+    init_logger(path_buf).unwrap();
 
     // Read command-line arguments and load configuration
     let opt = Opt::parse_args();
     let config = Config::load_yaml_with_opt_override(&opt).expect("Failed to load configuration");
 
     let etcd_config_sync = config.etcd.as_ref().map(|etcd_cfg| {
-        log::info!("Adding etcd config sync...");
+        info!("Adding etcd config sync...");
         let sync_handler = ProxySyncHandler::new(config.pingora.work_stealing);
         EtcdConfigSync::new(etcd_cfg.clone(), Box::new(sync_handler))
     });
 
     if etcd_config_sync.is_none() {
         // Log loading stages and initialize necessary services
-        log::info!("Loading services, upstreams, and routers...");
+        info!("Loading services, upstreams, and routers...");
         load_upstreams(&config).expect("Failed to load upstreams");
         load_services(&config).expect("Failed to load services");
         load_routers(&config).expect("Failed to load routers");
@@ -49,7 +58,7 @@ fn main() {
         http_proxy_service_with_name(&pingsix_server.configuration, http_service, "pingsix");
 
     // Add listeners (TLS or TCP) based on configuration
-    log::info!("Adding listeners...");
+    info!("Adding listeners...");
     for list_cfg in config.listeners.iter() {
         match &list_cfg.tls {
             Some(Tls {
@@ -77,7 +86,7 @@ fn main() {
 
     // Add Sentry configuration if provided
     if let Some(sentry_cfg) = &config.sentry {
-        log::info!("Adding Sentry config...");
+        info!("Adding Sentry config...");
         pingsix_server.sentry = Some(sentry::ClientOptions {
             dsn: sentry_cfg.dsn.clone().into_dsn().unwrap(),
             ..Default::default()
@@ -86,24 +95,24 @@ fn main() {
 
     // Add Prometheus service if provided
     if let Some(prometheus_cfg) = &config.prometheus {
-        log::info!("Adding Prometheus Service...");
+        info!("Adding Prometheus Service...");
         let mut prometheus_service_http = Service::prometheus_http_service();
         prometheus_service_http.add_tcp(&prometheus_cfg.address.to_string());
         pingsix_server.add_service(prometheus_service_http);
     }
 
     // Bootstrapping and server startup
-    log::info!("Bootstrapping...");
+    info!("Bootstrapping...");
     pingsix_server.bootstrap();
-    log::info!("Bootstrapped. Adding Services...");
+    info!("Bootstrapped. Adding Services...");
     pingsix_server.add_service(http_service);
 
     if let Some(etcd_config_sync) = etcd_config_sync {
-        log::info!("Adding etcd config sync service...");
+        info!("Adding etcd config sync service...");
         let etcd_service = background_service("etcd config sync", etcd_config_sync);
         pingsix_server.add_service(etcd_service);
     };
 
-    log::info!("Starting Server...");
+    info!("Starting Server...");
     pingsix_server.run_forever();
 }

@@ -11,7 +11,7 @@ use super::{
     upstream::{upstream_fetch, ProxyUpstream, UPSTREAM_MAP},
     MapOperations,
 };
-
+use crate::slogs::{error, info, warn};
 pub struct ProxySyncHandler {
     work_stealing: bool,
 }
@@ -49,7 +49,7 @@ impl ProxySyncHandler {
                     }
                 }
 
-                log::info!("Configuring Router: {}", router.id);
+                info!("Configuring Router: {}", router.id);
 
                 // 创建新的 ProxyRouter
                 ProxyRouter::new_with_upstream_and_plugins(router.clone(), self.work_stealing)
@@ -90,7 +90,7 @@ impl ProxySyncHandler {
                     }
                 }
 
-                log::info!("Configuring Upstream: {}", upstream.id);
+                info!("Configuring Upstream: {}", upstream.id);
                 ProxyUpstream::new_with_health_check(upstream.clone(), self.work_stealing)
                     .ok()
                     .map(Arc::new)
@@ -128,7 +128,7 @@ impl ProxySyncHandler {
                     }
                 }
 
-                log::info!("Configuring Service: {}", service.id);
+                info!("Configuring Service: {}", service.id);
                 ProxyService::new_with_upstream_and_plugins(service.clone(), self.work_stealing)
                     .ok()
                     .map(Arc::new)
@@ -166,7 +166,7 @@ impl ProxySyncHandler {
                     }
                 }
 
-                log::info!("Configuring Global Rule: {}", rule.id);
+                info!("Configuring Global Rule: {}", rule.id);
                 ProxyGlobalRule::new_with_plugins(rule.clone())
                     .ok()
                     .map(Arc::new)
@@ -187,12 +187,12 @@ impl ProxySyncHandler {
         match parse_key(key) {
             Ok((id, parsed_key_type)) if parsed_key_type == key_type => {
                 if let Ok(resource) = value_to_resource::<T>(event.kv().unwrap().value()) {
-                    log::info!("Handling {}: {}", key_type, id);
+                    info!("Handling {}: {}", key_type, id);
                     handler(self, &resource);
                 }
             }
             _ => {
-                log::warn!(
+                warn!(
                     "Failed to parse key or incorrect key type for {} event",
                     key_type
                 );
@@ -244,7 +244,7 @@ impl ProxySyncHandler {
 impl EtcdSyncHandler for ProxySyncHandler {
     fn handle_event(&self, event: &Event) {
         if event.kv().is_none() {
-            log::warn!("Event does not contain a key-value pair");
+            warn!("Event does not contain a key-value pair");
             return;
         }
 
@@ -265,11 +265,11 @@ impl EtcdSyncHandler for ProxySyncHandler {
                         self.handle_global_rule_event(event);
                     }
                     _ => {
-                        log::warn!("Unhandled PUT event for key type: {}", key_type);
+                        warn!("Unhandled PUT event for key type: {}", key_type);
                     }
                 },
                 Err(e) => {
-                    log::error!("Failed to parse key during PUT event: {}", e);
+                    error!("Failed to parse key during PUT event: {}", e);
                 }
             },
             // A DELETE event indicates that a key-value pair was removed
@@ -279,34 +279,34 @@ impl EtcdSyncHandler for ProxySyncHandler {
                     Ok((id, key_type)) => {
                         match key_type.as_str() {
                             "routers" => {
-                                log::info!("DELETE Router: {}", id);
+                                info!("DELETE Router: {}", id);
                                 // Handle the removal of a router
                                 ROUTER_MAP.remove(&id);
                                 reload_global_match();
                             }
                             "upstreams" => {
-                                log::info!("DELETE Upstream: {}", id);
+                                info!("DELETE Upstream: {}", id);
                                 // Handle the removal of an upstream
                                 UPSTREAM_MAP.remove(&id);
                             }
                             "services" => {
-                                log::info!("DELETE Service: {}", id);
+                                info!("DELETE Service: {}", id);
                                 // Handle the removal of a service
                                 SERVICE_MAP.remove(&id);
                             }
                             "global_rules" => {
-                                log::info!("DELETE Global Rule: {}", id);
+                                info!("DELETE Global Rule: {}", id);
                                 // Handle the removal of a global rule
                                 GLOBAL_RULE_MAP.remove(&id);
                                 reload_global_plugin();
                             }
                             _ => {
-                                log::warn!("Unhandled DELETE event for key type: {}", key_type);
+                                warn!("Unhandled DELETE event for key type: {}", key_type);
                             }
                         }
                     }
                     Err(e) => {
-                        log::error!("Failed to parse key during DELETE event: {}", e);
+                        error!("Failed to parse key during DELETE event: {}", e);
                     }
                 }
             }

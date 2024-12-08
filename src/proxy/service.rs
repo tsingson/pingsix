@@ -13,7 +13,7 @@ use super::{
     upstream::{upstream_fetch, ProxyUpstream},
     Identifiable, MapOperations,
 };
-
+use crate::slogs::info;
 /// Fetches a service by its ID.
 pub fn service_fetch(id: &str) -> Option<Arc<ProxyService>> {
     SERVICE_MAP.get(id)
@@ -85,7 +85,7 @@ pub fn load_services(config: &config::Config) -> Result<()> {
         .services
         .iter()
         .map(|service| {
-            log::info!("Configuring Service: {}", service.id);
+            info!("Configuring Service: {}", service.id);
             let proxy_service = ProxyService::new_with_upstream_and_plugins(
                 service.clone(),
                 config.pingora.work_stealing,

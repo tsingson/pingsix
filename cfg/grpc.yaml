@@ -1,0 +1,39 @@
+pingora:
+  version: 1
+  threads: 8
+  pid_file: /run/pingora.pid
+  upgrade_sock: /tmp/pingora_upgrade.sock
+  user: nobody
+  group: webusers
+
+listeners:
+  - address: 0.0.0.0:8080
+    offer_h2c: true
+routers:
+  - id: grpc-web
+    uris:
+      - /api.{*p}
+      - /files/{*p}
+      - /static/{*p}
+    upstream_id: grpc
+  - id: photo-srv
+    uri: /storage/{*p}
+    upstream_id: photo
+
+
+upstreams:
+  - id: grpc
+    nodes:
+      "127.0.0.1:8083": 1
+    type: roundrobin
+    scheme: http
+  - id: photo
+    nodes:
+      "127.0.0.1:8081": 1
+    type: roundrobin
+    scheme: http
+
+global_rules:
+  - id: global
+    plugins:
+      logger: {}

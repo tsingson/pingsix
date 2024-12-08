@@ -4,12 +4,13 @@ use std::fs;
 use std::net::SocketAddr;
 use std::{collections::HashMap, fmt};
 
-use log::{debug, trace};
 use pingora::server::configuration::{Opt, ServerConf};
 use pingora_error::{Error, ErrorType::*, OrErr, Result};
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use serde_yaml::Value as YamlValue;
+
+use crate::slogs::{debug, trace};
 use validator::{Validate, ValidationError};
 
 #[derive(Default, Debug, Serialize, Deserialize, Validate)]

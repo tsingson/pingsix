@@ -1,11 +1,11 @@
+use crate::slogs::info;
+use arc_swap::ArcSwap;
+use once_cell::sync::Lazy;
+use pingora_error::Result;
 use std::{
     collections::HashMap,
     sync::{Arc, RwLock},
 };
-
-use arc_swap::ArcSwap;
-use once_cell::sync::Lazy;
-use pingora_error::Result;
 
 use crate::config;
 
@@ -92,7 +92,7 @@ pub fn load_global_rules(config: &config::Config) -> Result<()> {
         .global_rules
         .iter()
         .map(|rule| {
-            log::info!("Configuring GlobalRule: {}", rule.id);
+            info!("Configuring GlobalRule: {}", rule.id);
             let proxy_global_rule = ProxyGlobalRule::new_with_plugins(rule.clone())?;
 
             Ok(Arc::new(proxy_global_rule))

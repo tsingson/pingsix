@@ -3,6 +3,7 @@ pub mod echo;
 pub mod grpc_web;
 pub mod gzip;
 pub mod limit_count;
+pub mod logger;
 pub mod prometheus;
 
 use std::{collections::HashMap, sync::Arc};
@@ -39,6 +40,7 @@ static PLUGIN_BUILDER_REGISTRY: Lazy<HashMap<&'static str, PluginCreateFn>> = La
             prometheus::PLUGIN_NAME,
             Arc::new(prometheus::create_prometheus_plugin),
         ),
+        (logger::PLUGIN_NAME, Arc::new(logger::create_logger_plugin)),
     ];
     arr.into_iter().collect()
 });
@@ -211,7 +213,7 @@ pub trait ProxyPlugin: Send + Sync {
     /// there is a fatal error that terminate the request.
     ///
     /// An error log is already emitted if there is any error. This phase is used for collecting
-    /// metrics and sending access logs.
+    /// metrics and sending access slogs.
     async fn logging(&self, _session: &mut Session, _e: Option<&Error>, _ctx: &mut ProxyContext) {}
 }
 

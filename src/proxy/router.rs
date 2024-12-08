@@ -1,14 +1,14 @@
-use std::collections::HashMap;
-use std::sync::Arc;
-use std::time;
-use std::{collections::BTreeMap, sync::RwLock};
-
+use crate::slogs::{debug, info};
 use arc_swap::ArcSwap;
 use matchit::{InsertError, Router as MatchRouter};
 use once_cell::sync::Lazy;
 use pingora_core::upstreams::peer::HttpPeer;
 use pingora_error::{Error, Result};
 use pingora_proxy::Session;
+use std::collections::HashMap;
+use std::sync::Arc;
+use std::time;
+use std::{collections::BTreeMap, sync::RwLock};
 
 use crate::config;
 
@@ -213,11 +213,9 @@ impl MatchEntry {
         let uri = session.req_header().uri.path();
         let method = session.req_header().method.as_str();
 
-        log::debug!(
+        debug!(
             "match request: host={:?}, uri={:?}, method={:?}",
-            host,
-            uri,
-            method
+            host, uri, method
         );
 
         // Attempt to match using host_uris if a valid host is provided
@@ -298,7 +296,7 @@ pub fn load_routers(config: &config::Config) -> Result<()> {
         .routers
         .iter()
         .map(|router| {
-            log::info!("Configuring Router: {}", router.id);
+            info!("Configuring Router: {}", router.id);
             let proxy_router = ProxyRouter::new_with_upstream_and_plugins(
                 router.clone(),
                 config.pingora.work_stealing,

@@ -1,11 +1,11 @@
+use crate::slogs::{debug, info, warn};
+use http::Uri;
 use std::{
     collections::HashMap,
     sync::{Arc, RwLock},
     time::{self, Duration},
 };
 
-use http::Uri;
-use log::info;
 use once_cell::sync::Lazy;
 use pingora::services::background::background_service;
 use pingora_core::{services::Service, upstreams::peer::HttpPeer};
@@ -99,7 +99,7 @@ impl ProxyUpstream {
     /// Selects a backend server for a given session.
     pub fn select_backend<'a>(&'a self, session: &'a mut Session) -> Option<Backend> {
         let key = request_selector_key(session, &self.inner.hash_on, self.inner.key.as_str());
-        log::debug!("proxy lb key: {}", &key);
+        debug!("proxy lb key: {}", &key);
 
         let mut backend = match &self.lb {
             SelectionLB::RoundRobin(lb) => lb.upstreams.select(key.as_bytes(), 256),
@@ -298,7 +298,7 @@ impl From<config::HealthCheck> for Box<HttpHealthCheck> {
         {
             health_check.req.set_uri(uri);
         } else {
-            log::warn!(
+            warn!(
                 "Invalid URI path provided for health check: {}",
                 value.active.http_path
             );
