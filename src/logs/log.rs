@@ -14,7 +14,7 @@ pub fn default_logger() {
 pub fn init_logger(path_buf: PathBuf) -> Result<(), Box<dyn Error>> {
     let mut p_log: PathBuf = path_buf.clone();
 
-    p_log.set_extension("proxy");
+    p_log.push("proxy");
     p_log.set_extension("log");
     let mut p_err: PathBuf = path_buf.clone();
     p_err.push("error");
